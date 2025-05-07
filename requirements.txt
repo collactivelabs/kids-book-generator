@@ -1,0 +1,67 @@
+# Alternative requirements for Python 3.13 compatibility
+# Note: Some packages may still not support Python 3.13 fully
+
+# Core dependencies - updated for Python 3.13
+fastapi==0.104.1
+uvicorn==0.24.0
+pydantic==2.8.2  # Updated to latest version for potential Python 3.13 support
+pydantic-settings==2.7.1  # Added for BaseSettings support in Pydantic 2.x
+python-dotenv==1.0.0
+
+# API clients
+openai==1.3.5
+httpx==0.25.2
+requests==2.31.0
+
+# Database - using psycopg instead of psycopg2-binary
+sqlalchemy==2.0.35  # Updated to latest 2.0.x version for Python 3.13 compatibility
+psycopg[binary]==3.2.3  # Newer PostgreSQL adapter with better Python 3.13 support
+alembic==1.12.1
+
+# Cache and queuing
+redis==5.0.1
+celery==5.3.4
+
+# PDF processing
+reportlab==4.0.7
+PyPDF2==3.0.1
+Pillow==10.4.0
+
+# Authentication
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.6
+
+# Monitoring and logging
+prometheus-client==0.19.0
+structlog==23.2.0
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+pytest-httpx==0.25.0
+
+# Development tools
+black==23.11.0
+flake8==6.1.0
+mypy==1.7.1
+pre-commit==3.5.0
+
+# Utilities
+aiofiles==23.2.1
+tenacity==8.2.3
+pyyaml==6.0.1
+
+# Web scraping
+beautifulsoup4==4.12.2
+
+# Image processing
+opencv-python-headless==4.8.1.78
+
+# CLI tools
+click==8.1.7
+rich==13.7.0
+
+# Data validation
+marshmallow==3.20.1
