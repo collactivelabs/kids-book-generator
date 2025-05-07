@@ -16,13 +16,51 @@ from passlib.context import CryptContext
 from src.config import settings
 
 
-logger = logging.getLogger(__name__)
+from src.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 # Setup password context for hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Setup OAuth2 scheme for token authentication
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
+# Setup OAuth2 scheme for token authentication with scopes
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="/api/v1/auth/token",
+    scopes={
+        "users:read": "Read user information",
+        "users:write": "Modify user information",
+        "books:read": "Read book information",
+        "books:write": "Create and modify books",
+        "admin": "Admin access",
+    }
+)
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """
+    Verify a password against a hash.
+    
+    Args:
+        plain_password: Plain text password
+        hashed_password: Hashed password
+        
+    Returns:
+        True if the password matches the hash
+    """
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+def get_password_hash(password: str) -> str:
+    """
+    Hash a password using bcrypt.
+    
+    Args:
+        password: Plain text password
+        
+    Returns:
+        Hashed password
+    """
+    return pwd_context.hash(password)
 
 
 def create_access_token(data: Dict, expires_delta: Optional[timedelta] = None) -> str:
@@ -37,10 +75,12 @@ def create_access_token(data: Dict, expires_delta: Optional[timedelta] = None) -
         Encoded JWT token
     """
     to_encode = data.copy()
-    expire = datetime.utcnow() + (
-        expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    )
-    to_encode.update({"exp": expire})
+    # If the 'exp' key is already in the data, don't override it
+    if "exp" not in to_encode:
+        expire = datetime.utcnow() + (
+            expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        )
+        to_encode.update({"exp": expire})
     
     encoded_jwt = jwt.encode(
         to_encode, 

@@ -11,8 +11,11 @@ generation_router = APIRouter()
 template_router = APIRouter()
 auth_router = APIRouter()
 
-# Import Canva router
+# Import routers
 from src.api.routers.canva import router as canva_router
+from src.api.routers.users import router as users_router
+from src.api.routers.books import router as books_router
+from src.api.routers.batch import router as batch_router
 
 # Book endpoints
 @book_router.get("/books")
