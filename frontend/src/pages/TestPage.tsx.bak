@@ -1,0 +1,339 @@
+import React, { useState, useEffect } from 'react';
+import styled from 'styled-components';
+// Import common components directly from their modules
+import { Button } from '../components/common/Button';
+import { Card } from '../components/common/Card';
+import { Input } from '../components/common/Input';
+import booksService, { Book, BookCreationRequest } from '../services/booksService';
+
+const Container = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+`;
+
+const TestSection = styled.div`
+  margin-bottom: 32px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid #e5e7eb;
+`;
+
+const SectionTitle = styled.h2`
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #1f2937;
+`;
+
+const TestGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+`;
+
+const FormContainer = styled.div`
+  max-width: 800px;
+  margin: 0 auto;
+`;
+
+// Mock template data for BookForm component
+const mockTemplates = [
+  { id: 'template1', name: 'Adventure Template', preview_url: 'https://via.placeholder.com/150' },
+  { id: 'template2', name: 'Fantasy Template', preview_url: 'https://via.placeholder.com/150' },
+  { id: 'template3', name: 'Educational Template', preview_url: 'https://via.placeholder.com/150' },
+];
+
+// Mock books for BookList component
+const mockBooks: Book[] = [
+  {
+    id: '1',
+    metadata: {
+      title: 'The Adventures of Luna',
+      author: 'John Smith',
+      age_group: '3-5',
+      book_type: 'story',
+      theme: 'Adventure',
+      educational_focus: 'Problem Solving',
+      trim_size: '8.5x11',
+      page_count: 24
+    },
+    template_id: 'template1',
+    canva_design_id: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    owner: 'user1',
+    status: 'completed',
+    preview_url: 'https://via.placeholder.com/200x300',
+    download_url: 'https://example.com/download/1'
+  },
+  {
+    id: '2',
+    metadata: {
+      title: 'Colors and Shapes',
+      author: 'Jane Doe',
+      age_group: '0-3',
+      book_type: 'coloring',
+      theme: 'Educational',
+      educational_focus: 'Shapes and Colors',
+      trim_size: '8.5x8.5',
+      page_count: 16
+    },
+    template_id: 'template2',
+    canva_design_id: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    owner: 'user1',
+    status: 'draft',
+    preview_url: null,
+    download_url: null
+  },
+  {
+    id: '3',
+    metadata: {
+      title: 'The Magical Forest',
+      author: 'Robert Williams',
+      age_group: '5-7',
+      book_type: 'story',
+      theme: 'Fantasy',
+      educational_focus: 'Imagination',
+      trim_size: '8.5x11',
+      page_count: 32
+    },
+    template_id: 'template3',
+    canva_design_id: 'canva123',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    owner: 'user1',
+    status: 'generating',
+    preview_url: 'https://via.placeholder.com/200x300',
+    download_url: null
+  }
+];
+
+const TestPage: React.FC = () => {
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertType, setAlertType] = useState<'info' | 'success' | 'warning' | 'error'>('info');
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: ''
+  });
+  const [apiTestResult, setApiTestResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  // Form change handler
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  };
+
+  // Form submit handler
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    // Simulate form submission
+    setTimeout(() => {
+      setAlertType('success');
+      setAlertVisible(true);
+      setLoading(false);
+    }, 1500);
+  };
+
+  // Test API connection
+  const testApiConnection = async () => {
+    setLoading(true);
+    setApiTestResult(null);
+
+    try {
+      // Attempt to get books (will likely fail if not authenticated, but that's expected for testing)
+      await booksService.getBooks();
+      setApiTestResult({ 
+        success: true, 
+        message: 'Successfully connected to API' 
+      });
+    } catch (error) {
+      let errorMessage = 'Failed to connect to API';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      setApiTestResult({ 
+        success: false, 
+        message: errorMessage
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Mock form submission for BookForm
+  const handleBookFormSubmit = async (data: BookCreationRequest) => {
+    setLoading(true);
+    console.log('Book form data:', data);
+    
+    // Simulate API request delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    setAlertType('success');
+    setAlertVisible(true);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (alertVisible) {
+      const timer = setTimeout(() => {
+        setAlertVisible(false);
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [alertVisible]);
+
+  return (
+    <Container>
+      <h1>Component and Integration Test Page</h1>
+      <p>This page is used to test various components and their integration with each other.</p>
+
+      {alertVisible && (
+        <Alert 
+          type={alertType} 
+          title={alertType === 'success' ? 'Success!' : 'Information'} 
+          message={alertType === 'success' ? 'Operation completed successfully.' : 'This is an informational message.'}
+          dismissible
+          onClose={() => setAlertVisible(false)}
+        />
+      )}
+
+      {/* UI Components Test */}
+      <TestSection>
+        <SectionTitle>UI Components Test</SectionTitle>
+        <TestGrid>
+          <Card>
+            <Card.Header>
+              <Card.Title>Button Tests</Card.Title>
+            </Card.Header>
+            <Card.Content>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <Button variant="primary">Primary Button</Button>
+                <Button variant="secondary">Secondary Button</Button>
+                <Button variant="danger">Danger Button</Button>
+                <Button variant="ghost">Ghost Button</Button>
+                <Button isLoading>Loading Button</Button>
+                <Button disabled>Disabled Button</Button>
+              </div>
+            </Card.Content>
+          </Card>
+
+          <Card>
+            <Card.Header>
+              <Card.Title>Input Tests</Card.Title>
+            </Card.Header>
+            <Card.Content>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <Input label="Standard Input" placeholder="Enter text" />
+                <Input 
+                  label="Error Input" 
+                  placeholder="Error state" 
+                  error={true} 
+                  errorText="This field has an error" 
+                />
+                <Input
+                  label="With Helper Text"
+                  placeholder="Helper text below"
+                  helperText="This is some helpful information"
+                />
+              </div>
+            </Card.Content>
+          </Card>
+
+          <Card>
+            <Card.Header>
+              <Card.Title>Form Tests</Card.Title>
+            </Card.Header>
+            <Card.Content>
+              <Form onSubmit={handleSubmit}>
+                <Form.Group>
+                  <Form.Label htmlFor="name">Name</Form.Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    placeholder="Enter your name"
+                  />
+                </Form.Group>
+                <Form.Group>
+                  <Form.Label htmlFor="email">Email</Form.Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    placeholder="Enter your email"
+                  />
+                </Form.Group>
+                <Form.Actions>
+                  <Button type="submit" isLoading={loading}>Submit</Button>
+                </Form.Actions>
+              </Form>
+            </Card.Content>
+          </Card>
+        </TestGrid>
+      </TestSection>
+
+      {/* API Tests */}
+      <TestSection>
+        <SectionTitle>API Connection Test</SectionTitle>
+        <Card>
+          <Card.Content>
+            <p>Test the connection to the backend API endpoints.</p>
+            <div style={{ marginTop: '16px' }}>
+              <Button onClick={testApiConnection} isLoading={loading}>
+                Test API Connection
+              </Button>
+            </div>
+            {apiTestResult && (
+              <div style={{ marginTop: '16px' }}>
+                <Alert 
+                  type={apiTestResult.success ? 'success' : 'error'} 
+                  title={apiTestResult.success ? 'Connection Successful' : 'Connection Failed'} 
+                  message={apiTestResult.message}
+                />
+              </div>
+            )}
+          </Card.Content>
+        </Card>
+      </TestSection>
+
+      {/* BookForm Component Test */}
+      <TestSection>
+        <SectionTitle>Book Form Component Test</SectionTitle>
+        <FormContainer>
+          <BookForm 
+            templates={mockTemplates}
+            onSubmit={handleBookFormSubmit}
+            isSubmitting={loading}
+          />
+        </FormContainer>
+      </TestSection>
+
+      {/* BookList Component Test */}
+      <TestSection>
+        <SectionTitle>Book List Component Test</SectionTitle>
+        <BookList 
+          books={mockBooks}
+          onBookClick={(book) => console.log('Book clicked:', book)}
+          onCreateBook={() => console.log('Create book clicked')}
+        />
+      </TestSection>
+    </Container>
+  );
+};
+
+export default TestPage;
