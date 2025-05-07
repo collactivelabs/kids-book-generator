@@ -11,6 +11,9 @@ generation_router = APIRouter()
 template_router = APIRouter()
 auth_router = APIRouter()
 
+# Import Canva router
+from src.api.routers.canva import router as canva_router
+
 # Book endpoints
 @book_router.get("/books")
 async def get_books():
@@ -83,3 +86,6 @@ async def canva_callback(code: str, state: str = None):
 async def validate_openai_key(api_key: str):
     """Validate an OpenAI API key."""
     return await handle_openai_key_validation(api_key)
+
+# Note: We're exporting the Canva router directly rather than adding endpoints
+# to the existing auth_router, as it's a comprehensive module with many endpoints

@@ -43,11 +43,12 @@ if static_dir.exists():
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
 # Include API routers
-from src.api.routes import book_router, generation_router, template_router, auth_router
+from src.api.routes import book_router, generation_router, template_router, auth_router, canva_router
 app.include_router(book_router, prefix="/api/v1", tags=["books"])
 app.include_router(generation_router, prefix="/api/v1", tags=["generation"])
 app.include_router(template_router, prefix="/api/v1", tags=["templates"])
 app.include_router(auth_router, prefix="/api/v1", tags=["auth"])
+app.include_router(canva_router, prefix="/api/v1", tags=["canva"])
 
 # Error handlers
 @app.exception_handler(HTTPException)
