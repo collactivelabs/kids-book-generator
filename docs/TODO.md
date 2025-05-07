@@ -124,8 +124,8 @@
   - [x] Implement generation workflow
   - [x] Add progress tracking
   - [x] Fix TypeScript errors and improve type safety
-  - [ ] Implement book preview functionality
-  - [ ] Add download capabilities
+  - [x] Implement book preview functionality
+  - [x] Add download capabilities
 
 ### Medium Priority
 - [x] Implement batch processing

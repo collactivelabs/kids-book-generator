@@ -12,6 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - GenerationSettings component for configuring book parameters
   - GenerationProgressTracker component for monitoring generation status
   - BookPreview component for displaying generated book content
+- PDF and JSON export utilities
+  - generateAndDownloadPdf function for creating printable PDFs
+  - saveBookAsJson function for exporting book data
+- Download options dropdown menu in BookPreview
+  - PDF download for printing
+  - JSON export for data backup/sharing
+  - Save to collection option
 - Theme provider with comprehensive styling support
 - Generation service for handling API interactions
 - Mock generation functions for development and testing

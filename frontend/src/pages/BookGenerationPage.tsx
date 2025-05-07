@@ -290,6 +290,8 @@ const BookGenerationPage: React.FC = () => {
                 <BookPreview
                   book={book}
                   onClose={() => setShowPreview(false)}
+                  onSave={handleSaveBook}
+                  showDownloadOptions={true}
                 />
                 <ActionButtons>
                   <Button onClick={handleSaveBook}>Save Book</Button>

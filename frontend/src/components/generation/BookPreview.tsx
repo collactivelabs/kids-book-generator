@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import styled from 'styled-components';
 import type { Book } from '../../services/booksService';
+import { generateAndDownloadPdf, saveBookAsJson } from '../../utils/pdf-utils';
 
 // Book page interface
-interface BookPage {
+export interface BookPage {
   id: string;
   page_number: number;
   content?: string;
@@ -14,7 +15,8 @@ interface BookPreviewProps {
   book: Book;
   pages?: BookPage[];
   onClose?: () => void;
-  onDownload?: () => void;
+  onSave?: () => void;
+  showDownloadOptions?: boolean;
 }
 
 const PreviewContainer = styled.div`
@@ -45,6 +47,7 @@ const Title = styled.h2`
 const HeaderActions = styled.div`
   display: flex;
   gap: 12px;
+  position: relative;
 `;
 
 const Button = styled.button`
@@ -208,19 +211,52 @@ const PageIndicator = styled.div`
   align-items: center;
 `;
 
+const DownloadMenu = styled.div<{ isOpen: boolean }>`
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: ${({ theme }) => theme.colors.background.card};
+  border: 1px solid ${({ theme }) => theme.colors.border.light};
+  border-radius: 4px;
+  box-shadow: ${({ theme }) => theme.shadows.dropdown};
+  min-width: 160px;
+  z-index: 10;
+  display: ${({ isOpen }) => isOpen ? 'block' : 'none'};
+`;
+
+const MenuItem = styled.button`
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: ${({ theme }) => theme.colors.text.primary};
+  
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.background.light};
+  }
+`;
+
 /**
  * Book Preview Component
  * 
  * Displays a preview of the generated book with page navigation
+ * and download options
  */
 const BookPreview: React.FC<BookPreviewProps> = ({ 
   book, 
   pages, 
   onClose, 
-  onDownload 
+  onSave,
+  showDownloadOptions = true
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
+  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const downloadMenuRef = useRef<HTMLDivElement>(null);
   
   // Generate mock pages if none provided
   const bookPages = pages?.length ? pages : [
@@ -229,6 +265,41 @@ const BookPreview: React.FC<BookPreviewProps> = ({
     { id: '3', page_number: 3, content: 'Chapter 1: The Beginning', image_url: undefined },
     { id: '4', page_number: 4, content: 'This is the story content...' }
   ];
+  
+  // Handle download options
+  const handleDownloadPdf = async () => {
+    try {
+      await generateAndDownloadPdf(book, bookPages);
+      setShowDownloadMenu(false);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      // Here you could add a notification to the user
+    }
+  };
+  
+  const handleDownloadJson = () => {
+    try {
+      saveBookAsJson(book, bookPages);
+      setShowDownloadMenu(false);
+    } catch (error) {
+      console.error('Error saving JSON:', error);
+      // Here you could add a notification to the user
+    }
+  };
+  
+  // Close dropdown when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (downloadMenuRef.current && !downloadMenuRef.current.contains(event.target as Node)) {
+        setShowDownloadMenu(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // Calculate current pages (left and right)
   const leftPageIndex = currentPage * 2;
@@ -267,10 +338,17 @@ const BookPreview: React.FC<BookPreviewProps> = ({
       <PreviewHeader>
         <Title>Book Preview</Title>
         <HeaderActions>
-          {onDownload && (
-            <PrimaryButton onClick={onDownload}>
-              Download PDF
-            </PrimaryButton>
+          {showDownloadOptions && (
+            <>
+              <PrimaryButton onClick={() => setShowDownloadMenu(!showDownloadMenu)}>
+                Download Options
+              </PrimaryButton>
+              <DownloadMenu isOpen={showDownloadMenu} ref={downloadMenuRef}>
+                <MenuItem onClick={handleDownloadPdf}>Download as PDF</MenuItem>
+                <MenuItem onClick={handleDownloadJson}>Save as JSON</MenuItem>
+                {onSave && <MenuItem onClick={onSave}>Save to My Books</MenuItem>}
+              </DownloadMenu>
+            </>
           )}
           {onClose && (
             <SecondaryButton onClick={onClose}>
