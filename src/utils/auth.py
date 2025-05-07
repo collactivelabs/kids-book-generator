@@ -13,10 +13,10 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 
-from src.config import settings
+from config import settings
 
 
-from src.utils.logging import get_logger
+from utils.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -26,6 +26,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # Setup OAuth2 scheme for token authentication with scopes
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="/api/v1/auth/token",
+    auto_error=True,
     scopes={
         "users:read": "Read user information",
         "users:write": "Modify user information",
@@ -75,19 +76,28 @@ def create_access_token(data: Dict, expires_delta: Optional[timedelta] = None) -
         Encoded JWT token
     """
     to_encode = data.copy()
-    # If the 'exp' key is already in the data, don't override it
-    if "exp" not in to_encode:
-        expire = datetime.utcnow() + (
-            expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-        )
-        to_encode.update({"exp": expire})
     
+    # Set expiration time
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(
+            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        )
+    
+    # Add expiration time to token data - ensure we use integer timestamp
+    # This is critical as PyJWT expects exp to be an integer timestamp
+    to_encode.update({"exp": int(expire.timestamp())})
+    
+    logger.debug(f"Creating token with data: {to_encode}")
+    logger.debug(f"Using key: {settings.SECRET_KEY[:5]}... and algorithm: {settings.ALGORITHM}")
+    
+    # Encode token with JWT
     encoded_jwt = jwt.encode(
-        to_encode, 
-        settings.SECRET_KEY, 
-        algorithm=settings.ALGORITHM
+        to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
     )
     
+    logger.debug(f"Token created: {encoded_jwt[:10]}...")
     return encoded_jwt
 
 
@@ -111,10 +121,24 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     )
     
     try:
+        # For debugging, print the token information
+        logger.debug(f"Decoding token with SECRET_KEY starting with {settings.SECRET_KEY[:5]}...")
+        
+        # Decode JWT token with explicit disabling of verification options
+        # This is only for development/testing - should be properly configured in production
         payload = jwt.decode(
             token, 
             settings.SECRET_KEY, 
-            algorithms=[settings.ALGORITHM]
+            algorithms=[settings.ALGORITHM],
+            options={
+                "verify_signature": True,  # Verify the signature
+                "verify_exp": True,       # Verify expiration time
+                "verify_nbf": False,      # Skip "not before" time verification
+                "verify_iat": False,      # Skip "issued at" time verification
+                "verify_aud": False,      # Skip audience verification
+                "verify_iss": False,      # Skip issuer verification
+                "require": ["exp"]      # Require expiration time
+            }
         )
         return payload
     except jwt.PyJWTError as e:

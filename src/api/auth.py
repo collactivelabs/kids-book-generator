@@ -16,10 +16,10 @@ from pydantic import BaseModel, Field, ValidationError
 
 from jose import JWTError, jwt
 
-from src.config import settings
-from src.utils.auth import create_access_token, verify_password, get_password_hash
-from src.integrations.canva import canva_client
-from src.utils.logging import get_logger
+from config import settings
+from utils.auth import create_access_token, verify_password, get_password_hash
+from integrations.canva import canva_client
+from utils.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -125,46 +125,56 @@ async def handle_token_generation(form_data: OAuth2PasswordRequestForm = Depends
     Raises:
         HTTPException: If authentication fails
     """
+    logger.debug(f"Authenticating user: {form_data.username}")
+    
+    # Authenticate user
     user = await authenticate_user(fake_users_db, form_data.username, form_data.password)
     if not user:
+        logger.error(f"Authentication failed for user: {form_data.username}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    if user.disabled:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Inactive user",
-        )
+    logger.debug(f"User authenticated: {user.username}")
     
-    # Determine scopes from requested and available scopes
-    scopes = []
-    for scope in form_data.scopes:
-        if scope in user.scopes:
-            scopes.append(scope)
+    # Default scopes to what the user has in the database
+    scopes = user.scopes.copy()
     
-    # If no scopes were requested or matched, use all available scopes
-    if not scopes:
-        scopes = user.scopes
+    # Check requested scopes
+    if form_data.scopes:
+        # Restrict to only the requested scopes that the user actually has
+        scopes = [s for s in form_data.scopes if s in user.scopes]
     
-    # Create access token with 30 minute expiration
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    expires_at = datetime.utcnow() + access_token_expires
+    logger.debug(f"Granted scopes: {scopes}")
     
+    # Create access token with a FAR FUTURE expiration time for development
+    # In production, this should be a reasonable value like 30-60 minutes
+    access_token_expires = timedelta(days=365)  # Using a year for development
+    
+    # Create token data with required claims
+    now = datetime.utcnow()
+    expire_time = now + access_token_expires
+    logger.debug(f"Token will expire at: {expire_time} (in {(expire_time - now).total_seconds()} seconds)")
+    
+    token_data = {
+        "sub": user.username,
+        "scopes": scopes,
+        # The exp field will be added by create_access_token
+    }
+    
+    # Generate access token
     access_token = create_access_token(
-        data={
-            "sub": user.username,
-            "scopes": scopes,
-            "exp": expires_at.timestamp()
-        }
+        data=token_data, 
+        expires_delta=access_token_expires
     )
     
+    # Create token response
     return Token(
         access_token=access_token,
         token_type="bearer",
-        expires_at=expires_at,
+        expires_at=expire_time,
         scopes=scopes
     )
 
@@ -253,6 +263,9 @@ async def get_current_user(
     security_scopes: SecurityScopes,
     token: str = Depends(oauth2_scheme)
 ) -> User:
+    logger.debug(f"Authenticating request with scopes: {security_scopes.scopes}")
+    logger.debug(f"Token: {token[:10]}...")
+    
     """
     Get the current user from the JWT token.
     
@@ -278,32 +291,62 @@ async def get_current_user(
     )
     
     try:
-        # Decode JWT token
+        # Decode JWT token with consistent verification options
+        logger.debug(f"Attempting to decode token using algorithm: {settings.ALGORITHM}")
+        logger.debug(f"Using SECRET_KEY starting with: {settings.SECRET_KEY[:5]}...")
+        
         payload = jwt.decode(
             token, 
             settings.SECRET_KEY, 
-            algorithms=[settings.ALGORITHM]
+            algorithms=[settings.ALGORITHM],
+            options={
+                "verify_signature": True,  # Verify the signature
+                "verify_exp": True,       # Verify expiration time
+                "verify_nbf": False,      # Skip "not before" time verification
+                "verify_iat": False,      # Skip "issued at" time verification
+                "verify_aud": False,      # Skip audience verification
+                "verify_iss": False,      # Skip issuer verification
+                "require": ["exp"]      # Require expiration time
+            }
         )
+        logger.debug(f"Token decoded successfully. Payload: {payload}")
         
         # Extract user information
         username: str = payload.get("sub")
         if username is None:
+            logger.error("Token payload is missing 'sub' field")
             raise credentials_exception
             
         # Extract token scopes
         token_scopes = payload.get("scopes", [])
+        logger.debug(f"Token scopes: {token_scopes}")
         
-        # Create token data
+        # Create token data with proper timestamp handling
+        exp_time = payload.get("exp", 0)
+        # Ensure exp_time is properly converted to datetime
+        try:
+            if isinstance(exp_time, (int, float)):
+                exp_datetime = datetime.fromtimestamp(exp_time)
+                logger.debug(f"Token expiration: {exp_datetime} (from timestamp {exp_time})")
+            else:
+                logger.error(f"Unexpected exp format: {type(exp_time)}, value: {exp_time}")
+                exp_datetime = None
+        except Exception as e:
+            logger.error(f"Failed to convert exp to datetime: {str(e)}")
+            exp_datetime = None
+            
         token_data = TokenData(
             username=username,
             scopes=token_scopes,
-            exp=datetime.fromtimestamp(payload.get("exp", 0))
+            exp=exp_datetime
         )
-    except JWTError:
+    except JWTError as e:
+        logger.error(f"JWT decode error: {str(e)}")
         raise credentials_exception
     
     # Check token expiration
     if token_data.exp and token_data.exp < datetime.utcnow():
+        logger.error(f"Token expired: {token_data.exp} < {datetime.utcnow()}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token expired",
@@ -311,22 +354,31 @@ async def get_current_user(
         )
     
     # Get user from database
+    logger.debug(f"Looking up user: {token_data.username}")
     user = get_user(fake_users_db, token_data.username)
     if user is None:
+        logger.error(f"User not found: {token_data.username}")
         raise credentials_exception
     
     # Check if user is disabled
     if user.disabled:
+        logger.error(f"User is disabled: {token_data.username}")
         raise HTTPException(status_code=400, detail="Inactive user")
     
     # Check for required scopes
+    logger.debug(f"Required scopes: {security_scopes.scopes}, User scopes: {token_data.scopes}")
+    missing_scopes = []
     for scope in security_scopes.scopes:
         if scope not in token_data.scopes:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Not enough permissions. Required: {security_scopes.scopes}",
-                headers={"WWW-Authenticate": authenticate_value},
-            )
+            missing_scopes.append(scope)
+    
+    if missing_scopes:
+        logger.error(f"Missing scopes: {missing_scopes}")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Not enough permissions. Required: {security_scopes.scopes}",
+            headers={"WWW-Authenticate": authenticate_value},
+        )
     
     # Return User object (not UserInDB to avoid returning the password hash)
     return User(

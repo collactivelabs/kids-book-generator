@@ -6,6 +6,11 @@ middleware, and dependencies.
 """
 import os
 from pathlib import Path
+from typing import List, Dict, Any, Optional
+
+# Import development settings before other modules
+import dev_settings
+
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -43,16 +48,16 @@ if static_dir.exists():
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
 # Include API routers
-from src.api.routes import (
+from api.routes import (
     book_router, generation_router, template_router, auth_router, 
     canva_router, users_router, books_router, batch_router
 )
 
 # Legacy routers (simple placeholders)
-app.include_router(book_router, prefix="/api/v1", tags=["legacy"])
-app.include_router(generation_router, prefix="/api/v1", tags=["legacy"])
-app.include_router(template_router, prefix="/api/v1", tags=["legacy"])
-app.include_router(auth_router, prefix="/api/v1", tags=["legacy"])
+app.include_router(book_router, prefix="/api/v1/legacy", tags=["legacy"])
+app.include_router(generation_router, prefix="/api/v1/legacy", tags=["legacy"])
+app.include_router(template_router, prefix="/api/v1/legacy", tags=["legacy"])
+app.include_router(auth_router, prefix="/api/v1", tags=["auth"])
 
 # New fully implemented routers
 app.include_router(canva_router, prefix="/api/v1", tags=["canva"])
