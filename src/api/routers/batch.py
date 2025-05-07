@@ -13,9 +13,9 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, Security, status, BackgroundTasks
 from pydantic import BaseModel, Field, validator
 
-from src.api.auth import User, get_current_user
-from src.api.models import BookMetadata, BookType, AgeGroup, TrimSize
-from src.utils.logging import get_logger
+from api.auth import User, get_current_user
+from api.models import BookMetadata, BookType, AgeGroup, TrimSize
+from utils.logging import get_logger
 
 
 logger = get_logger(__name__)

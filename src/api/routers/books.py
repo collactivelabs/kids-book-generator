@@ -5,18 +5,18 @@ This module handles book creation, retrieval, updating, and deletion.
 """
 import os
 from typing import List, Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, timedelta
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Security, status, Query, File, UploadFile
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
-from src.api.auth import User, get_current_user
-from src.api.models import (
+from api.auth import User, get_current_user
+from api.models import (
     BookMetadata, BookType, TrimSize, AgeGroup, BookGenerationResponse
 )
-from src.utils.logging import get_logger
+from utils.logging import get_logger
 
 
 logger = get_logger(__name__)

@@ -22,10 +22,10 @@ from pydantic import BaseModel, Field
 import fitz  # PyMuPDF
 from PIL import Image, ImageOps
 
-from src.config import settings
-from src.utils.logging import get_logger
-from src.api.models import BookMetadata, BookType
-from src.integrations.canva import canva_client, CanvaExportRequest
+from config import settings
+from utils.logging import get_logger
+from api.models import BookMetadata, BookType
+from integrations.canva import canva_client, CanvaExportRequest
 
 
 logger = get_logger(__name__)

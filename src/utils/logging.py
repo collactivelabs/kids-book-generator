@@ -9,7 +9,7 @@ import sys
 import structlog
 from typing import Optional
 
-from src.config import settings
+from config import settings
 
 
 def configure_logging(log_level: Optional[str] = None) -> None:

@@ -11,12 +11,12 @@ from fastapi import APIRouter, Depends, HTTPException, Security, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, Field, EmailStr
 
-from src.api.auth import (
+from api.auth import (
     User, Token, handle_token_generation, get_current_user,
     handle_canva_authorize, handle_canva_callback, fake_users_db
 )
-from src.utils.logging import get_logger
-from src.utils.auth import get_password_hash
+from utils.logging import get_logger
+from utils.auth import get_password_hash
 
 
 logger = get_logger(__name__)

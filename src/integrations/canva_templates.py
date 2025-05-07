@@ -14,10 +14,10 @@ import uuid
 
 from pydantic import BaseModel, Field
 
-from src.config import settings
-from src.utils.logging import get_logger
-from src.api.models import BookMetadata, BookType, AgeGroup, TrimSize
-from src.integrations.canva import canva_client, CanvaDesign
+from config import settings
+from utils.logging import get_logger
+from api.models import BookMetadata, BookType, AgeGroup, TrimSize
+from integrations.canva import canva_client, CanvaDesign
 
 
 logger = get_logger(__name__)

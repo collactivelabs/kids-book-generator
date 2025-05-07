@@ -13,20 +13,20 @@ from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks, R
 from fastapi.responses import JSONResponse, RedirectResponse, FileResponse
 from pydantic import BaseModel, Field
 
-from src.config import settings
-from src.api.models import BookMetadata, BookType, TrimSize
-from src.api.auth import get_current_user
-from src.utils.logging import get_logger
-from src.integrations.canva import (
+from config import settings
+from api.models import BookMetadata, BookType, TrimSize
+from api.auth import get_current_user
+from utils.logging import get_logger
+from integrations.canva import (
     canva_client, CanvaDesign, CanvaDesignRequest, CanvaExportRequest, CanvaAsset
 )
-from src.integrations.canva_templates import (
+from integrations.canva_templates import (
     canva_template_manager, CanvaTemplate
 )
-from src.integrations.canva_export import (
+from integrations.canva_export import (
     canva_export_manager, ExportStatus
 )
-from src.integrations.canva_preview import (
+from integrations.canva_preview import (
     canva_preview_manager, PreviewOptions, PreviewResult
 )
 

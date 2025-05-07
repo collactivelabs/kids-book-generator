@@ -23,9 +23,9 @@ from fastapi import HTTPException, Depends
 import aiohttp
 from pydantic import BaseModel, Field
 
-from src.config import settings
-from src.utils.logging import get_logger
-from src.api.models import BookMetadata, BookType
+from config import settings
+from utils.logging import get_logger
+from api.models import BookMetadata, BookType
 
 
 logger = get_logger(__name__)

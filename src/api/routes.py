@@ -12,10 +12,10 @@ template_router = APIRouter()
 auth_router = APIRouter()
 
 # Import routers
-from src.api.routers.canva import router as canva_router
-from src.api.routers.users import router as users_router
-from src.api.routers.books import router as books_router
-from src.api.routers.batch import router as batch_router
+from api.routers.canva import router as canva_router
+from api.routers.users import router as users_router
+from api.routers.books import router as books_router
+from api.routers.batch import router as batch_router
 
 # Book endpoints
 @book_router.get("/books")
@@ -63,7 +63,7 @@ async def get_template(template_id: str):
 # Authentication endpoints
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordRequestForm
-from src.api.auth import (
+from api.auth import (
     handle_token_generation,
     handle_canva_authorize,
     handle_canva_callback,
