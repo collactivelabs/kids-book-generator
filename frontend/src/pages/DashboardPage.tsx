@@ -62,11 +62,11 @@ const StatValue = styled.div`
   margin-bottom: var(--spacing-xs);
 `;
 
-const StatChange = styled.div<{ positive: boolean }>`
+const StatChange = styled.div<{ $positive: boolean }>`
   display: flex;
   align-items: center;
   font-size: var(--font-size-sm);
-  color: ${({ positive }) => (positive ? 'var(--color-success)' : 'var(--color-error)')};
+  color: ${({ $positive }) => ($positive ? 'var(--color-success)' : 'var(--color-error)')};
 `;
 
 const ActionsGrid = styled.div`
@@ -217,14 +217,14 @@ const ActivityTime = styled.span`
   margin-right: var(--spacing-md);
 `;
 
-const ActivityStatus = styled.span<{ status: string }>`
+const ActivityStatus = styled.span<{ $status: string }>`
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--border-radius-sm);
   font-size: var(--font-size-xs);
   font-weight: 500;
   
-  ${({ status }) => {
-    switch (status) {
+  ${({ $status }) => {
+    switch ($status) {
       case 'completed':
         return `
           background-color: rgba(76, 175, 80, 0.1);
@@ -309,7 +309,7 @@ const DashboardPage: React.FC = () => {
           <StatCard key={index}>
             <StatTitle>{stat.title}</StatTitle>
             <StatValue>{stat.value}</StatValue>
-            <StatChange positive={stat.positive}>
+            <StatChange $positive={stat.positive}>
               {stat.positive ? (
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="18 15 12 9 6 15"></polyline>
@@ -394,7 +394,7 @@ const DashboardPage: React.FC = () => {
                   <ActivityTitle>{activity.title}</ActivityTitle>
                   <ActivityMeta>
                     <ActivityTime>{activity.time}</ActivityTime>
-                    <ActivityStatus status={activity.status}>
+                    <ActivityStatus $status={activity.status}>
                       {activity.status.charAt(0).toUpperCase() + activity.status.slice(1)}
                     </ActivityStatus>
                   </ActivityMeta>

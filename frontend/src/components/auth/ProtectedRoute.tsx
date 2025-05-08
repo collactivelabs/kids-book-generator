@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -17,14 +18,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children, 
   requiredScopes = [] 
 }) => {
-  const { isAuthenticated, user, loading } = useAuth();
+  // Use Redux instead of AuthContext for consistent state management
+  const { isAuthenticated, user, loading } = useSelector((state: RootState) => state.auth);
+  const location = useLocation();
   
   // Show loading state
   if (loading) {
     // You could replace this with a LoadingSpinner component
     return <div>Loading...</div>;
   }
-  const location = useLocation();
 
   // If not authenticated, redirect to login with return path
   if (!isAuthenticated) {

@@ -73,6 +73,8 @@ const ErrorMessage = styled.p`
   margin-top: var(--spacing-xs);
 `;
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 /**
  * Login form component
  * 
@@ -84,14 +86,28 @@ const LoginForm: React.FC = () => {
     password: '',
   });
   
-  const { loading, error } = useSelector((state: RootState) => state.auth);
+  // Get full auth state and log it
+  const authState = useSelector((state: RootState) => {
+    return state.auth;
+  });
+  const { loading, error } = authState;
+  
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Extract return URL from query parameters, default to dashboard
-  const searchParams = new URLSearchParams(location.search);
-  const returnUrl = searchParams.get('returnUrl') || '/dashboard';
+  // Handle navigation destination after login
+  const getNavigationDestination = () => {
+    const searchParams = new URLSearchParams(location.search);
+    const returnUrl = searchParams.get('returnUrl');
+    
+    // Make sure returnUrl is valid and not the login page itself
+    if (returnUrl && returnUrl !== '/login' && !returnUrl.includes('/login') && returnUrl.startsWith('/')) {
+      return returnUrl;
+    }
+    
+    return '/dashboard';
+  };
   
   // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,11 +122,23 @@ const LoginForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Check if all required fields are filled
+    const requiredFields = ['username', 'password'];
+    const emptyFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
+    
+    if (emptyFields.length > 0) {
+      dispatch(addNotification({
+        type: 'error',
+        message: `Please fill in all required fields: ${emptyFields.join(', ')}`
+      }));
+      return;
+    }
+    
     try {
       dispatch(loginStart());
       
       // Make API request to login endpoint
-      const response = await fetch('/api/v1/auth/token', {
+      const response = await fetch(`${API_BASE_URL}/auth/token`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -127,40 +155,73 @@ const LoginForm: React.FC = () => {
       }
       
       const data = await response.json();
+      // Store token in localStorage
+      localStorage.setItem('token', data.access_token);
+      
+      // Calculate token expiry (default: 24 hours from now if not provided)
+      const expiresIn = data.expires_in || 86400; // Default: 24 hours in seconds
+      const expiresAt = new Date(Date.now() + expiresIn * 1000).toISOString();
       
       // Get user data
-      const userResponse = await fetch('/api/v1/users/me', {
-        headers: {
-          'Authorization': `Bearer ${data.access_token}`,
-        },
-      });
-      
-      if (!userResponse.ok) {
-        throw new Error('Failed to fetch user data');
+      try {
+        const userResponse = await fetch(`${API_BASE_URL}/users/me`, {
+          headers: {
+            'Authorization': `Bearer ${data.access_token}`,
+          },
+        });
+        
+        if (!userResponse.ok) {
+          const errorData = await userResponse.json().catch(() => ({}));
+          console.error('User data fetch error:', errorData);
+          throw new Error(errorData.detail || 'Failed to fetch user data');
+        }
+        
+        const userData = await userResponse.json();
+        
+        // Dispatch login success with user data and token
+        dispatch(loginSuccess({
+          user: {
+            username: userData.username,
+            email: userData.email || formData.username + '@example.com',
+            fullName: userData.full_name || formData.username,
+            scopes: userData.scopes || ['users:read'],
+          },
+          token: data.access_token,
+          expiresAt: expiresAt
+        }));
+        
+        // Show success notification
+        dispatch(addNotification({
+          type: 'success',
+          message: 'Login successful!',
+        }));
+        
+        // Navigate to return URL or dashboard
+        // Use replace:true to prevent back button returning to login
+        // Use setTimeout with longer delay to ensure all state updates are complete before navigation
+        setTimeout(() => {
+          const destination = getNavigationDestination();
+          // Force navigation to the dashboard with replace to avoid navigation loops
+          navigate(destination, { replace: true });
+          
+          // Extra safety check - ensure we're actually on the dashboard after a short delay
+          setTimeout(() => {
+            const currentPath = window.location.pathname;
+            if (currentPath.includes('/login')) {
+              window.location.href = '/dashboard';
+            }
+          }, 100);
+        }, 100); // Increased timeout to ensure Redux state is fully updated
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Login failed';
+        dispatch(loginFail(errorMessage));
+        
+        // Show error notification
+        dispatch(addNotification({
+          type: 'error',
+          message: errorMessage,
+        }));
       }
-      
-      const userData = await userResponse.json();
-      
-      // Dispatch login success with user data and token
-      dispatch(loginSuccess({
-        user: {
-          username: userData.username,
-          email: userData.email,
-          fullName: userData.full_name,
-          scopes: data.scopes || [],
-        },
-        token: data.access_token,
-        expiresAt: data.expires_at,
-      }));
-      
-      // Show success notification
-      dispatch(addNotification({
-        type: 'success',
-        message: 'Login successful!',
-      }));
-      
-      // Navigate to return URL
-      navigate(returnUrl);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Login failed';
       dispatch(loginFail(errorMessage));

@@ -80,6 +80,8 @@ const PasswordRequirements = styled.ul`
   padding-left: var(--spacing-md);
 `;
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 /**
  * Registration form component
  * 
@@ -177,7 +179,7 @@ const RegisterForm: React.FC = () => {
       dispatch(registerStart());
       
       // Make API request to register endpoint
-      const response = await fetch('/api/v1/users', {
+      const response = await fetch(`${API_BASE_URL}/users`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -187,6 +189,8 @@ const RegisterForm: React.FC = () => {
           email: formData.email,
           password: formData.password,
           full_name: formData.fullName,
+          scopes: ['users:read', 'books:read', 'books:write'],
+          is_active: true,
         }),
       });
       

@@ -2,12 +2,14 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 // Import components using the index files we created
 import { MainLayout } from './components/layout';
-import { ProtectedRoute } from './components/auth';
+import { ProtectedRoute, AuthInitializer } from './components/auth';
 // Import pages directly
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
+import ProfilePage from './pages/ProfilePage';
+import SettingsPage from './pages/SettingsPage';
 import BookCreatePage from './pages/BookCreatePage';
 import BookDetailPage from './pages/BookDetailPage';
 import BookListPage from './pages/BookListPage';
@@ -22,9 +24,13 @@ import NotFoundPage from './pages/NotFoundPage';
  */
 const App: React.FC = () => {
   return (
-    <Routes>
-      {/* Public routes */}
+    <>
+      {/* Initialize authentication state on app load */}
+      <AuthInitializer />
+      
+      <Routes>
       <Route path="/" element={<MainLayout />}>
+        {/* Public routes */}
         <Route index element={<HomePage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
@@ -33,6 +39,18 @@ const App: React.FC = () => {
         <Route path="dashboard" element={
           <ProtectedRoute>
             <DashboardPage />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="profile" element={
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="settings" element={
+          <ProtectedRoute>
+            <SettingsPage />
           </ProtectedRoute>
         } />
         
@@ -74,6 +92,7 @@ const App: React.FC = () => {
         <Route path="*" element={<Navigate to="/404" replace />} />
       </Route>
     </Routes>
+    </>
   );
 };
 

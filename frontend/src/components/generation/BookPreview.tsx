@@ -99,12 +99,12 @@ const BookContainer = styled.div`
   perspective: 2000px;
 `;
 
-const Book = styled.div<{ isOpen: boolean }>`
+const Book = styled.div<{ $isOpen: boolean }>`
   position: relative;
   width: 100%;
   height: 100%;
   transform-style: preserve-3d;
-  transform: ${({ isOpen }) => isOpen ? 'rotateY(-10deg)' : 'rotateY(0deg)'};
+  transform: ${({ $isOpen }) => $isOpen ? 'rotateY(-10deg)' : 'rotateY(0deg)'};
   transition: transform 0.5s ease;
 `;
 
@@ -211,7 +211,7 @@ const PageIndicator = styled.div`
   align-items: center;
 `;
 
-const DownloadMenu = styled.div<{ isOpen: boolean }>`
+const DownloadMenu = styled.div<{ $isOpen: boolean }>`
   position: absolute;
   top: 100%;
   right: 0;
@@ -221,7 +221,7 @@ const DownloadMenu = styled.div<{ isOpen: boolean }>`
   box-shadow: ${({ theme }) => theme.shadows.dropdown};
   min-width: 160px;
   z-index: 10;
-  display: ${({ isOpen }) => isOpen ? 'block' : 'none'};
+  display: ${({ $isOpen }) => $isOpen ? 'block' : 'none'};
 `;
 
 const MenuItem = styled.button`
@@ -343,7 +343,7 @@ const BookPreview: React.FC<BookPreviewProps> = ({
               <PrimaryButton onClick={() => setShowDownloadMenu(!showDownloadMenu)}>
                 Download Options
               </PrimaryButton>
-              <DownloadMenu isOpen={showDownloadMenu} ref={downloadMenuRef}>
+              <DownloadMenu $isOpen={showDownloadMenu} ref={downloadMenuRef}>
                 <MenuItem onClick={handleDownloadPdf}>Download as PDF</MenuItem>
                 <MenuItem onClick={handleDownloadJson}>Save as JSON</MenuItem>
                 {onSave && <MenuItem onClick={onSave}>Save to My Books</MenuItem>}
@@ -360,7 +360,7 @@ const BookPreview: React.FC<BookPreviewProps> = ({
       
       <BookViewport>
         <BookContainer>
-          <Book isOpen={isOpen}>
+          <Book $isOpen={isOpen}>
             <BookCover onClick={toggleBook}>
               <CoverTitle>{book.metadata.title}</CoverTitle>
               <CoverAuthor>By {book.metadata.author}</CoverAuthor>

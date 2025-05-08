@@ -12,7 +12,7 @@ const Title = styled.h1`
   color: var(--color-text);
 `;
 
-const StatusBadge = styled.span<{ status: string }>`
+const StatusBadge = styled.span<{ $status: string }>`
   display: inline-block;
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--border-radius-sm);
@@ -20,8 +20,8 @@ const StatusBadge = styled.span<{ status: string }>`
   font-size: var(--font-size-sm);
   margin-left: var(--spacing-md);
   
-  ${({ status }) => {
-    switch (status) {
+  ${({ $status }) => {
+    switch ($status) {
       case 'completed':
         return `
           background-color: rgba(76, 175, 80, 0.1);
@@ -61,7 +61,7 @@ const BatchJobDetailPage: React.FC = () => {
     <PageContainer>
       <Title>
         Batch Job Details
-        <StatusBadge status={status}>
+        <StatusBadge $status={status}>
           {status.charAt(0).toUpperCase() + status.slice(1)}
         </StatusBadge>
       </Title>

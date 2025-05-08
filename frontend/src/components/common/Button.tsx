@@ -29,11 +29,11 @@ export type ButtonProps<C extends ElementType = 'button'> = {
 } & ButtonAsProps<C> & Omit<ComponentPropsWithoutRef<C>, keyof ButtonStyleProps | keyof ButtonAsProps<C> | 'disabled'>;
 
 const StyledButton = styled.button<{
-  variant: ButtonVariant;
+  $variant: ButtonVariant;
   size: ButtonSize;
-  fullWidth: boolean;
-  hasLeftIcon: boolean;
-  hasRightIcon: boolean;
+  $fullWidth: boolean;
+  $hasLeftIcon: boolean;
+  $hasRightIcon: boolean;
 }>`
   display: inline-flex;
   align-items: center;
@@ -47,7 +47,7 @@ const StyledButton = styled.button<{
 
   /* Full width */
   ${(props) =>
-    props.fullWidth &&
+    props.$fullWidth &&
     css`
       width: 100%;
     `}
@@ -75,7 +75,7 @@ const StyledButton = styled.button<{
 
   /* Style variants */
   ${(props) => {
-    switch (props.variant) {
+    switch (props.$variant) {
       case 'secondary':
         return css`
           background-color: #f3f4f6;
@@ -132,13 +132,13 @@ const StyledButton = styled.button<{
 
   /* Icon spacing */
   ${(props) =>
-    props.hasLeftIcon &&
+    props.$hasLeftIcon &&
     css`
       padding-left: ${props.size === 'small' ? '10px' : '12px'};
     `}
 
   ${(props) =>
-    props.hasRightIcon &&
+    props.$hasRightIcon &&
     css`
       padding-right: ${props.size === 'small' ? '10px' : '12px'};
     `}
@@ -184,11 +184,11 @@ export const Button = <C extends React.ElementType = 'button'>(
   return (
     <StyledButton
       as={as}
-      variant={variant}
+      $variant={variant}
       size={size}
-      fullWidth={fullWidth}
-      hasLeftIcon={!!leftIcon}
-      hasRightIcon={!!rightIcon}
+      $fullWidth={fullWidth}
+      $hasLeftIcon={!!leftIcon}
+      $hasRightIcon={!!rightIcon}
       disabled={disabled || isLoading}
       {...rest}
     >

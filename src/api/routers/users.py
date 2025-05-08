@@ -31,6 +31,8 @@ class UserCreate(BaseModel):
     email: EmailStr
     full_name: Optional[str] = None
     password: str = Field(..., min_length=8)
+    scopes: Optional[List[str]] = None
+    is_active: Optional[bool] = True
 
 
 class UserUpdate(BaseModel):
@@ -125,7 +127,8 @@ async def create_user(user_create: UserCreate):
         "full_name": user_create.full_name,
         "hashed_password": get_password_hash(user_create.password),
         "disabled": False,
-        "scopes": ["books:read", "books:write"],  # Default scopes for new users
+        "scopes": user_create.scopes if user_create.scopes else ["books:read", "books:write"],  # Default scopes for new users
+        "is_active": user_create.is_active,
     }
     
     return {

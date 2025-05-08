@@ -34,14 +34,14 @@ const Title = styled.h3`
   margin: 0;
 `;
 
-const StatusBadge = styled.span<{ status: GenerationStatus }>`
+const StatusBadge = styled.span<{ $status: GenerationStatus }>`
   padding: 0.25rem 0.75rem;
   border-radius: 16px;
   font-size: 0.875rem;
   font-weight: 600;
-  background-color: ${({ status, theme }) => {
-    const getBackgroundColor = (status: GenerationStatus) => {
-      switch (status) {
+  background-color: ${({ $status, theme }) => {
+    const getBackgroundColor = ($status: GenerationStatus) => {
+      switch ($status) {
         case 'idle':
           return theme.colors.status.pending;
         case 'preparing':
@@ -56,7 +56,7 @@ const StatusBadge = styled.span<{ status: GenerationStatus }>`
           return theme.colors.status.info;
       }
     };
-    return getBackgroundColor(status);
+    return getBackgroundColor($status);
   }};
   color: white;
 `;
@@ -70,7 +70,7 @@ const ProgressBarContainer = styled.div`
   margin: 0.75rem 0;
 `;
 
-const ProgressBar = styled.div<{ progress: number; status: GenerationStatus }>`
+const ProgressBar = styled.div<{ $progress: number; $status: GenerationStatus }>`
   height: 8px;
   background-color: ${({ theme }) => theme.colors.background.dark};
   border-radius: 4px;
@@ -84,11 +84,11 @@ const ProgressBar = styled.div<{ progress: number; status: GenerationStatus }>`
     top: 0;
     left: 0;
     height: 100%;
-    width: ${({ progress }) => `${progress}%`};
-    background-color: ${({ theme, status }) => 
-      status === 'failed' 
+    width: ${({ $progress }) => `${$progress}%`};
+    background-color: ${({ theme, $status }) => 
+      $status === 'failed' 
         ? theme.colors.status.error 
-        : status === 'completed' 
+        : $status === 'completed' 
           ? theme.colors.status.success 
           : theme.colors.primary.main
     };
@@ -213,7 +213,7 @@ const GenerationProgressTracker: React.FC<GenerationProgressTrackerProps> = ({
     return (
       <>
         <ProgressBarContainer>
-          <ProgressBar progress={progress} status={status} />
+          <ProgressBar $progress={progress} $status={status} />
           <ProgressText>
             {progress.toFixed(0)}%
           </ProgressText>
@@ -238,7 +238,7 @@ const GenerationProgressTracker: React.FC<GenerationProgressTrackerProps> = ({
     <Container>
       <Header>
         <Title>Generation Progress</Title>
-        <StatusBadge status={status}>{getStatusText()}</StatusBadge>
+        <StatusBadge $status={status}>{getStatusText()}</StatusBadge>
       </Header>
       
       {renderContent()}

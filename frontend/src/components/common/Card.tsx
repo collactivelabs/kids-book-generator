@@ -15,22 +15,22 @@ interface CardProps {
 }
 
 const StyledCard = styled.div<{
-  variant: CardVariant;
-  padding: CardPadding;
-  fullWidth: boolean;
-  interactive: boolean;
+  $variant: CardVariant;
+  $padding: CardPadding;
+  $fullWidth: boolean;
+  $interactive: boolean;
 }>`
   border-radius: 8px;
   overflow: hidden;
   
   ${(props) =>
-    props.fullWidth &&
+    props.$fullWidth &&
     css`
       width: 100%;
     `}
   
   ${(props) => {
-    switch (props.padding) {
+    switch (props.$padding) {
       case 'none':
         return css`
           padding: 0;
@@ -51,7 +51,7 @@ const StyledCard = styled.div<{
   }}
   
   ${(props) => {
-    switch (props.variant) {
+    switch (props.$variant) {
       case 'outlined':
         return css`
           border: 1px solid #e5e7eb;
@@ -73,7 +73,7 @@ const StyledCard = styled.div<{
   }}
   
   ${(props) =>
-    props.interactive &&
+    props.$interactive &&
     css`
       cursor: pointer;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -129,12 +129,12 @@ export const Card: React.FC<CardProps> & {
 }) => {
   return (
     <StyledCard
-      variant={variant}
-      padding={padding}
-      fullWidth={fullWidth}
+      $variant={variant}
+      $padding={padding}
+      $fullWidth={fullWidth}
       className={className}
       onClick={onClick}
-      interactive={interactive || !!onClick}
+      $interactive={interactive || !!onClick}
     >
       {children}
     </StyledCard>

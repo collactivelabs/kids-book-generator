@@ -10,18 +10,18 @@ import generationService, { GenerationSettingsData, GenerationStatusResponse } f
 
 // Styled components
 const PageContainer = styled.div`
-  padding: ${({ theme }) => theme.spacing.md};
+  padding: ${props => props.theme.spacing.md};
 `;
 
 const Title = styled.h1`
-  margin-bottom: ${({ theme }) => theme.spacing.lg};
-  color: ${({ theme }) => theme.colors.text.primary};
+  margin-bottom: ${props => props.theme.spacing.lg};
+  color: ${props => props.theme.colors.text.primary};
 `;
 
 const ContentGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr;
-  gap: ${({ theme }) => theme.spacing.lg};
+  gap: ${props => props.theme.spacing.lg};
   
   @media (min-width: 1200px) {
     grid-template-columns: 1fr 1fr;
@@ -29,19 +29,19 @@ const ContentGrid = styled.div`
 `;
 
 const Section = styled(Card)`
-  padding: ${({ theme }) => theme.spacing.lg};
-  margin-bottom: ${({ theme }) => theme.spacing.lg};
+  padding: ${props => props.theme.spacing.lg};
+  margin-bottom: ${props => props.theme.spacing.lg};
 `;
 
 const SectionTitle = styled.h2`
-  margin-bottom: ${({ theme }) => theme.spacing.md};
-  font-size: ${({ theme }) => theme.typography.fontSize.lg};
+  margin-bottom: ${props => props.theme.spacing.md};
+  font-size: ${props => props.theme.typography.fontSize.lg};
 `;
 
 const ActionButtons = styled.div`
   display: flex;
-  gap: ${({ theme }) => theme.spacing.md};
-  margin-top: ${({ theme }) => theme.spacing.lg};
+  gap: ${props => props.theme.spacing.md};
+  margin-top: ${props => props.theme.spacing.lg};
 `;
 
 /**

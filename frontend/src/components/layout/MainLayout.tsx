@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import styled from 'styled-components';
@@ -20,8 +20,8 @@ const MainContent = styled.div`
   flex: 1;
 `;
 
-const SidebarWrapper = styled.div<{ isOpen: boolean }>`
-  width: ${({ isOpen }) => (isOpen ? '250px' : '0')};
+const SidebarWrapper = styled.div<{ $isOpen: boolean }>`
+  width: ${({ $isOpen }) => ($isOpen ? '250px' : '0')};
   transition: width var(--transition-normal);
   overflow: hidden;
   background-color: var(--color-surface);
@@ -46,8 +46,8 @@ const Content = styled.main`
   min-height: calc(100vh - 60px);
 `;
 
-const Overlay = styled.div<{ visible: boolean }>`
-  display: ${({ visible }) => (visible ? 'block' : 'none')};
+const Overlay = styled.div<{ $visible: boolean }>`
+  display: ${({ $visible }) => ($visible ? 'block' : 'none')};
   position: fixed;
   top: 0;
   left: 0;
@@ -68,8 +68,20 @@ const Overlay = styled.div<{ visible: boolean }>`
  */
 const MainLayout: React.FC = () => {
   const { sidebarOpen } = useSelector((state: RootState) => state.ui);
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch();
+  
+  // More strict check for authentication - require both flag and user object
+  // This ensures sidebar only shows when both conditions are true
+  const isFullyAuthenticated = isAuthenticated && !!user;
+  
+  // Log authentication state for debugging
+  useEffect(() => {
+    // Handle token validation on component mount
+    if (isAuthenticated && !user) {
+      localStorage.removeItem('token');
+    }
+  }, [isAuthenticated, user, isFullyAuthenticated]);
   
   // Handle overlay click (close sidebar on mobile)
   const handleOverlayClick = () => {
@@ -83,13 +95,13 @@ const MainLayout: React.FC = () => {
       <Header />
       
       <MainContent>
-        {/* Sidebar only shows for authenticated users */}
-        {isAuthenticated && (
+        {/* Sidebar only shows for fully authenticated users with valid user object */}
+        {isFullyAuthenticated && (
           <>
-            <SidebarWrapper isOpen={sidebarOpen}>
+            <SidebarWrapper $isOpen={sidebarOpen}>
               <Sidebar />
             </SidebarWrapper>
-            <Overlay visible={sidebarOpen} onClick={handleOverlayClick} />
+            <Overlay $visible={sidebarOpen} onClick={handleOverlayClick} />
           </>
         )}
         

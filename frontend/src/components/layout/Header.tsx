@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import styled from 'styled-components';
 import { RootState } from '../../store';
 import { logout } from '../../store/slices/authSlice';
-import { toggleSidebar, toggleTheme } from '../../store/slices/uiSlice';
+import { toggleSidebar, toggleTheme, addNotification } from '../../store/slices/uiSlice';
 
 // Styled components
 const HeaderContainer = styled.header`
@@ -109,11 +109,11 @@ const UserMenuButton = styled.button`
   }
 `;
 
-const DropdownMenu = styled.div<{ isOpen: boolean }>`
+const DropdownMenu = styled.div<{ $isOpen: boolean }>`
   position: absolute;
   top: 100%;
   right: 0;
-  display: ${({ isOpen }) => (isOpen ? 'block' : 'none')};
+  display: ${({ $isOpen }) => ($isOpen ? 'block' : 'none')};
   background-color: white;
   border-radius: var(--border-radius-sm);
   box-shadow: var(--shadow-md);
@@ -159,14 +159,17 @@ const Header: React.FC = () => {
   const navigate = useNavigate();
   
   // Toggle user dropdown menu
-  const toggleUserMenu = () => {
+  const toggleUserMenu = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event from propagating to document
     setUserMenuOpen(!userMenuOpen);
   };
   
   // Close user menu when clicking outside
   React.useEffect(() => {
-    const handleClickOutside = (_: MouseEvent) => {
-      if (userMenuOpen) {
+    const handleClickOutside = (e: MouseEvent) => {
+      // Check if the click is outside the user menu
+      const userMenuElement = document.getElementById('user-menu');
+      if (userMenuOpen && userMenuElement && !userMenuElement.contains(e.target as Node)) {
         setUserMenuOpen(false);
       }
     };
@@ -179,8 +182,17 @@ const Header: React.FC = () => {
   
   // Handle logout
   const handleLogout = () => {
+    // Dispatch logout action to clear auth state
     dispatch(logout());
-    navigate('/');
+    
+    // Show success notification
+    dispatch(addNotification({
+      type: 'success',
+      message: 'Successfully logged out!',
+    }));
+    
+    // Navigate to homepage with replace to prevent navigation back to protected routes
+    navigate('/', { replace: true });
   };
   
   return (
@@ -218,7 +230,7 @@ const Header: React.FC = () => {
         {/* User menu (only shown when authenticated) */}
         {isAuthenticated && user ? (
           <NavItem>
-            <UserMenu>
+            <UserMenu id="user-menu">
               <UserMenuButton onClick={toggleUserMenu}>
                 <span>{user.username}</span>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -226,7 +238,7 @@ const Header: React.FC = () => {
                 </svg>
               </UserMenuButton>
               
-              <DropdownMenu isOpen={userMenuOpen}>
+              <DropdownMenu $isOpen={userMenuOpen}>
                 <DropdownItem onClick={() => navigate('/dashboard')}>
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
